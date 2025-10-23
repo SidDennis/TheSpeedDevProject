@@ -1,89 +1,40 @@
 # TheSpeedDevProject
 
-This is a full-stack web application built with modern technologies.
+A full-stack web application with FastAPI backend and React frontend.
 
-## Features
-
-- FastAPI backend with MongoDB and Redis
-- React frontend with modern UI
-- Docker containerization for easy development
-- Beautiful, responsive design
-
-## Tech Stack
-
-### Backend
-- **Python 3.11+** - Programming language
-- **FastAPI** - Modern, fast web framework
-- **MongoDB** - NoSQL database
-- **Redis** - In-memory data store for caching
-- **Motor** - Async MongoDB driver
-- **Pydantic** - Data validation
-
-### Frontend
-- **React 18** - JavaScript library for building user interfaces
-- **Tailwind CSS** - Utility-first CSS framework
-- **Axios** - HTTP client
-- **Lucide React** - Beautiful icons
-
-## Quick Start
+## 🚀 Quick Start - Backend Testing
 
 ### Prerequisites
 - Docker and Docker Compose
-- Node.js 18+ (for local development)
 - Python 3.11+ (for local development)
+- curl or any API testing tool
 
-### Using Docker (Recommended)
+### Method 1: Using Docker (Recommended)
 
-1. **Clone the repository**
+1. **Start the backend service only**
    ```bash
-   git clone <repository-url>
-   cd TheSpeedDevProject
+   docker-compose up backend -d
    ```
 
-2. **Start all services**
+2. **Test the API endpoints**
    ```bash
-   docker-compose up -d
+   # Test the root endpoint
+   curl http://localhost:8000/
+   
+   # Expected response: {"message": "Hello World"}
    ```
 
-3. **Access the application**
-   - Frontend: http://localhost:3000
-   - Backend API: http://localhost:8000
-   - API Documentation: http://localhost:8000/docs
+3. **View API documentation**
+   - Open browser: http://localhost:8000/docs
+   - Interactive Swagger UI for testing endpoints
 
-## 🐳 Docker Commands
+4. **Check service status**
+   ```bash
+   docker-compose ps
+   docker-compose logs backend
+   ```
 
-### Essential Docker Commands
-
-```bash
-# Build the containers
-docker-compose build
-
-# Start all services
-docker-compose up -d
-
-# Stop all services
-docker-compose down
-```
-
-### Quick Demo
-
-```bash
-# Build and start everything
-docker-compose up -d --build
-
-# Check if services are running
-docker-compose ps
-
-# View logs
-docker-compose logs -f
-
-# Stop everything
-docker-compose down
-```
-
-### Local Development
-
-#### Backend Setup
+### Method 2: Local Development
 
 1. **Navigate to backend directory**
    ```bash
@@ -98,153 +49,172 @@ docker-compose down
 
 3. **Install dependencies**
    ```bash
-   pip install -r requirements.txt
+   pip install fastapi uvicorn
    ```
 
-4. **Set up environment variables**
-   ```bash
-   cp env.example .env
-   # Edit .env file with your configuration
-   ```
-
-5. **Start MongoDB and Redis**
-   ```bash
-   # Using Docker
-   docker run -d -p 27017:27017 --name mongodb mongo:7.0
-   docker run -d -p 6379:6379 --name redis redis:7.2-alpine
-   ```
-
-6. **Run the backend**
+4. **Run the backend server**
    ```bash
    uvicorn app.main:app --reload --host 0.0.0.0 --port 8000
    ```
 
-#### Frontend Setup
-
-1. **Navigate to frontend directory**
+5. **Test the API**
    ```bash
-   cd frontend
+   curl http://localhost:8000/
    ```
 
-2. **Install dependencies**
-   ```bash
-   npm install
-   ```
+## 🧪 Backend Testing Guide
 
-3. **Start the development server**
-   ```bash
-   npm start
-   ```
+### Available Endpoints
 
-## API Endpoints
+| Method | Endpoint | Description | Expected Response |
+|--------|----------|-------------|------------------|
+| GET | `/` | Root endpoint | `{"message": "Hello World"}` |
+| GET | `/docs` | API documentation | Swagger UI interface |
+| GET | `/redoc` | Alternative docs | ReDoc interface |
 
-### Users
-- `GET /api/v1/users` - Get all users
-- `GET /api/v1/users/{user_id}` - Get user by ID
-- `POST /api/v1/users` - Create new user
-- `PUT /api/v1/users/{user_id}` - Update user
-- `DELETE /api/v1/users/{user_id}` - Delete user
+### Testing Commands
 
-### Health Check
-- `GET /health` - API health status
+```bash
+# Test root endpoint
+curl http://localhost:8000/
 
-## Project Structure
+# Test with verbose output
+curl -v http://localhost:8000/
+
+# Test with JSON formatting
+curl http://localhost:8000/ | jq
+
+# Test API documentation
+curl http://localhost:8000/docs
+```
+
+### Using Browser Testing
+
+1. **Root endpoint**: http://localhost:8000/
+2. **Interactive API docs**: http://localhost:8000/docs
+3. **Alternative docs**: http://localhost:8000/redoc
+
+### Using Postman/Insomnia
+
+1. Create new request
+2. Set method to `GET`
+3. Set URL to `http://localhost:8000/`
+4. Send request
+5. Expected response: `{"message": "Hello World"}`
+
+## 🔧 Development Commands
+
+### Docker Commands
+
+```bash
+# Start only backend
+docker-compose up backend -d
+
+# Start all services
+docker-compose up -d
+
+# View logs
+docker-compose logs -f backend
+
+# Stop services
+docker-compose down
+
+# Rebuild and start
+docker-compose up -d --build
+```
+
+### Local Development Commands
+
+```bash
+# Install dependencies
+pip install fastapi uvicorn
+
+# Run with auto-reload
+uvicorn app.main:app --reload
+
+# Run on specific host/port
+uvicorn app.main:app --reload --host 0.0.0.0 --port 8000
+
+# Run in production mode
+uvicorn app.main:app --host 0.0.0.0 --port 8000
+```
+
+## 📁 Current Project Structure
 
 ```
 TheSpeedDevProject/
 ├── backend/
 │   ├── app/
 │   │   ├── __init__.py
-│   │   ├── config.py
-│   │   ├── database.py
-│   │   ├── main.py
-│   │   ├── models.py
-│   │   └── routers/
-│   │       ├── __init__.py
-│   │       └── users.py
+│   │   └── main.py          # Main FastAPI application
+│   ├── demo-app/           # Original demo (not used)
 │   ├── requirements.txt
-│   ├── env.example
 │   └── Dockerfile
-├── frontend/
-│   ├── public/
-│   ├── src/
-│   │   ├── App.js
-│   │   ├── index.js
-│   │   └── index.css
-│   ├── package.json
-│   ├── tailwind.config.js
-│   ├── postcss.config.js
-│   └── Dockerfile
+├── frontend/               # Skeleton frontend (not used for backend testing)
 ├── docker-compose.yml
 └── README.md
 ```
 
-## Features
+## 🐛 Troubleshooting
 
-### Backend Features
-- ✅ FastAPI with automatic API documentation
-- ✅ MongoDB integration with Motor async driver
-- ✅ Redis caching for improved performance
-- ✅ Pydantic models for data validation
-- ✅ CORS configuration for frontend integration
-- ✅ Error handling and validation
-- ✅ Async/await support throughout
+### Common Issues
 
-### Frontend Features
-- ✅ Modern React 18 with hooks
-- ✅ Beautiful UI with Tailwind CSS
-- ✅ Responsive design for all devices
-- ✅ User management (CRUD operations)
-- ✅ Modal forms for user creation/editing
-- ✅ Loading states and error handling
-- ✅ Clean, intuitive interface
+1. **Port 8000 already in use**
+   ```bash
+   # Find process using port 8000
+   lsof -i :8000
+   
+   # Kill the process
+   kill -9 <PID>
+   ```
 
-## Development
+2. **Docker container not starting**
+   ```bash
+   # Check container logs
+   docker-compose logs backend
+   
+   # Rebuild container
+   docker-compose up -d --build backend
+   ```
 
-### Adding New Features
+3. **Python module not found**
+   ```bash
+   # Make sure you're in the backend directory
+   cd backend
+   
+   # Install dependencies
+   pip install fastapi uvicorn
+   ```
 
-1. **Backend**: Add new routers in `app/routers/`
-2. **Frontend**: Create new components in `src/components/`
-3. **Database**: Update models in `app/models.py`
-
-### Testing
+### Health Checks
 
 ```bash
-# Backend tests
-cd backend
-pytest
+# Check if backend is running
+curl http://localhost:8000/
 
-# Frontend tests
-cd frontend
-npm test
+# Check Docker container status
+docker-compose ps
+
+# Check container logs
+docker-compose logs backend
 ```
 
-## Deployment
+## 🎯 Next Steps
 
-### Production Docker Setup
+Once the backend is working:
 
-1. **Build production images**
-   ```bash
-   docker-compose -f docker-compose.prod.yml build
-   ```
+1. **Add new endpoints** in `app/main.py`
+2. **Test endpoints** using curl or browser
+3. **Use interactive docs** at http://localhost:8000/docs
+4. **Build frontend integration** when ready
 
-2. **Deploy with production configuration**
-   ```bash
-   docker-compose -f docker-compose.prod.yml up -d
-   ```
+## 📚 Useful Resources
 
-## Contributing
-
-1. Fork the repository
-2. Create a feature branch
-3. Make your changes
-4. Add tests if applicable
-5. Submit a pull request
-
-## License
-
-This project is licensed under the MIT License - see the LICENSE file for details.
+- [FastAPI Documentation](https://fastapi.tiangolo.com/)
+- [Uvicorn Documentation](https://www.uvicorn.org/)
+- [Docker Compose Documentation](https://docs.docker.com/compose/)
+- [curl Manual](https://curl.se/docs/manual.html)
 
 ---
 
-**Authors**: Siddharth Dennis and Jacky Shen
+**Happy coding!** 🚀
