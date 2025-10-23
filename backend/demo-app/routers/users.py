@@ -9,31 +9,30 @@ import json
 router = APIRouter(prefix="/users", tags=["users"])
 
 @router.post("/", response_model=UserResponse)
-async def create_user(user: UserCreate, db=Depends(get_database), redis=Depends(get_redis)):
+def create_user(user: UserCreate, db=Depends(get_database), redis=Depends(get_redis)):
     """Create a new user"""
     # Check if user already exists
-    existing_user = await db.users.find_one({"email": user.email})
+    existing_user = db.users.find_one({"email": user.email})
     if existing_user:
         raise HTTPException(status_code=400, detail="User with this email already exists")
     
     # Create user document
     user_dict = user.dict()
-    from datetime import datetime
     user_dict["created_at"] = user_dict["updated_at"] = datetime.utcnow()
     
-    result = await db.users.insert_one(user_dict)
-    created_user = await db.users.find_one({"_id": result.inserted_id})
+    result = db.users.insert_one(user_dict)
+    created_user = db.users.find_one({"_id": result.inserted_id})
     
     # Cache the user in Redis
-    await redis.setex(f"user:{result.inserted_id}", 3600, json.dumps(created_user, default=str))
+    redis.setex(f"user:{result.inserted_id}", 3600, json.dumps(created_user, default=str))
     
     return UserResponse(**created_user, id=str(created_user["_id"]))
 
 @router.get("/", response_model=List[UserResponse])
-async def get_users(skip: int = 0, limit: int = 10, db=Depends(get_database)):
+def get_users(skip: int = 0, limit: int = 10, db=Depends(get_database)):
     """Get all users with pagination"""
     users = []
-    async for user in db.users.find().skip(skip).limit(limit):
+    for user in db.users.find().skip(skip).limit(limit):
         # Ensure datetime fields are properly handled
         if user.get("created_at") is None:
             user["created_at"] = datetime.utcnow()
@@ -43,10 +42,10 @@ async def get_users(skip: int = 0, limit: int = 10, db=Depends(get_database)):
     return users
 
 @router.get("/{user_id}", response_model=UserResponse)
-async def get_user(user_id: str, db=Depends(get_database), redis=Depends(get_redis)):
+def get_user(user_id: str, db=Depends(get_database), redis=Depends(get_redis)):
     """Get a specific user by ID"""
     # Try to get from cache first
-    cached_user = await redis.get(f"user:{user_id}")
+    cached_user = redis.get(f"user:{user_id}")
     if cached_user:
         user_data = json.loads(cached_user)
         return UserResponse(**user_data, id=str(user_data["_id"]))
@@ -55,23 +54,23 @@ async def get_user(user_id: str, db=Depends(get_database), redis=Depends(get_red
     if not ObjectId.is_valid(user_id):
         raise HTTPException(status_code=400, detail="Invalid user ID")
     
-    user = await db.users.find_one({"_id": ObjectId(user_id)})
+    user = db.users.find_one({"_id": ObjectId(user_id)})
     if not user:
         raise HTTPException(status_code=404, detail="User not found")
     
     # Cache the user
-    await redis.setex(f"user:{user_id}", 3600, json.dumps(user, default=str))
+    redis.setex(f"user:{user_id}", 3600, json.dumps(user, default=str))
     
     return UserResponse(**user, id=str(user["_id"]))
 
 @router.put("/{user_id}", response_model=UserResponse)
-async def update_user(user_id: str, user_update: UserUpdate, db=Depends(get_database), redis=Depends(get_redis)):
+def update_user(user_id: str, user_update: UserUpdate, db=Depends(get_database), redis=Depends(get_redis)):
     """Update a user"""
     if not ObjectId.is_valid(user_id):
         raise HTTPException(status_code=400, detail="Invalid user ID")
     
     # Check if user exists
-    existing_user = await db.users.find_one({"_id": ObjectId(user_id)})
+    existing_user = db.users.find_one({"_id": ObjectId(user_id)})
     if not existing_user:
         raise HTTPException(status_code=404, detail="User not found")
     
@@ -80,33 +79,32 @@ async def update_user(user_id: str, user_update: UserUpdate, db=Depends(get_data
     if not update_data:
         raise HTTPException(status_code=400, detail="No data to update")
     
-    from datetime import datetime
     update_data["updated_at"] = datetime.utcnow()
     
     # Update user
-    await db.users.update_one({"_id": ObjectId(user_id)}, {"$set": update_data})
-    updated_user = await db.users.find_one({"_id": ObjectId(user_id)})
+    db.users.update_one({"_id": ObjectId(user_id)}, {"$set": update_data})
+    updated_user = db.users.find_one({"_id": ObjectId(user_id)})
     
     # Update cache
-    await redis.setex(f"user:{user_id}", 3600, json.dumps(updated_user, default=str))
+    redis.setex(f"user:{user_id}", 3600, json.dumps(updated_user, default=str))
     
     return UserResponse(**updated_user, id=str(updated_user["_id"]))
 
 @router.delete("/{user_id}")
-async def delete_user(user_id: str, db=Depends(get_database), redis=Depends(get_redis)):
+def delete_user(user_id: str, db=Depends(get_database), redis=Depends(get_redis)):
     """Delete a user"""
     if not ObjectId.is_valid(user_id):
         raise HTTPException(status_code=400, detail="Invalid user ID")
     
     # Check if user exists
-    user = await db.users.find_one({"_id": ObjectId(user_id)})
+    user = db.users.find_one({"_id": ObjectId(user_id)})
     if not user:
         raise HTTPException(status_code=404, detail="User not found")
     
     # Delete user
-    await db.users.delete_one({"_id": ObjectId(user_id)})
+    db.users.delete_one({"_id": ObjectId(user_id)})
     
     # Remove from cache
-    await redis.delete(f"user:{user_id}")
+    redis.delete(f"user:{user_id}")
     
     return {"message": "User deleted successfully"}

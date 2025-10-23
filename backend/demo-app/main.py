@@ -23,19 +23,19 @@ app.add_middleware(
 app.include_router(users.router, prefix="/api/v1")
 
 @app.on_event("startup")
-async def startup_event():
-    await connect_to_mongo()
-    await connect_to_redis()
+def startup_event():
+    connect_to_mongo()
+    connect_to_redis()
 
 @app.on_event("shutdown")
-async def shutdown_event():
-    await close_mongo_connection()
-    await close_redis_connection()
+def shutdown_event():
+    close_mongo_connection()
+    close_redis_connection()
 
 @app.get("/")
-async def root():
+def root():
     return {"message": "Welcome to TheSpeedDevProject API!"}
 
 @app.get("/health")
-async def health_check():
+def health_check():
     return {"status": "healthy"}
